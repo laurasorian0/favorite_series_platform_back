@@ -1,3 +1,4 @@
+const { deleteFile } = require("../../utils/deleteFile");
 const Serie = require("../models/serie");
 
 const getSeries = async (req, res, next) => {
@@ -24,6 +25,9 @@ const getSeriesbyId = async (req, res, next) => {
 const postSerie = async (req, res, next) => {
   try {
     const newSerie = new Serie(req.body);
+    if (req.file) {
+      newSerie.portada = req.file.path;
+    }
     const serie = await newSerie.save()
     return res.status(200).json(serie);
 
@@ -48,15 +52,22 @@ const deleteSerie = async (req, res, next) => {
   try {
     const { id } = req.params;
     const serie = await Serie.findByIdAndDelete(id);
-    return res.status(200).json({
-      mensaje: "Ha sido eliminado con exito",
-      serieEliminada: serie,
-    })
-  } catch (error) {
-    return res.status(400).json("error")
-  }
-}
 
+    if (!serie) {
+      return res.status(404).json({ mensaje: "Serie no encontrada" });
+    }
+
+
+    await deleteFile(serie.portada);
+
+    return res.status(200).json({
+      mensaje: "Ha sido eliminada con éxito",
+      serieEliminada: serie,
+    });
+  } catch (error) {
+    return res.status(500).json({ mensaje: "Error al eliminar la serie", error });
+  }
+};
 module.exports = {
   getSeries, getSeriesbyId, postSerie, updateSerie, deleteSerie
 }
