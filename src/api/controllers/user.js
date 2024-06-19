@@ -71,14 +71,28 @@ const updateUser = async (req, res, next) => {
       return res.status(400).json("No puedes modificar a un usuario que no seas tú mismo.");
     }
 
-    const newUser = req.body;
-    const userUpdated = await User.findByIdAndUpdate(id, { favoritos: newUser.favoritos }, { new: true });
+    const { userName, favoritos } = req.body;
+
+    if (!favoritos) {
+      return res.status(400).json("Favoritos es requerido.");
+    }
+
+    const userUpdated = await User.findByIdAndUpdate(id, { favoritos: favoritos }, { new: true });
 
     return res.status(200).json(userUpdated);
   } catch (error) {
     return res.status(400).json(error.message);
   }
-}
+};
+
+module.exports = {
+  getUsers,
+  getUsersbyId,
+  register,
+  login,
+  updateUser
+};
+
 
 
 
